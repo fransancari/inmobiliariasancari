@@ -1,0 +1,34 @@
+const https = require("https");
+
+exports.handler = async function(event) {
+  const API_KEY = "79afe94e8bb6d0b490628b74a970c5c894356636";
+  const params = event.queryStringParameters || {};
+  const limit = params.limit || 100;
+  const offset = params.offset || 0;
+
+  const url = `https://www.tokkobroker.com/api/v1/property/?format=json&key=${API_KEY}&lang=es_ar&limit=${limit}&offset=${offset}`;
+
+  return new Promise((resolve) => {
+    https.get(url, { headers: { "Accept": "application/json" } }, (res) => {
+      let data = "";
+      res.on("data", chunk => { data += chunk; });
+      res.on("end", () => {
+        resolve({
+          statusCode: 200,
+          headers: {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+            "Cache-Control": "public, max-age=300"
+          },
+          body: data
+        });
+      });
+    }).on("error", (err) => {
+      resolve({
+        statusCode: 500,
+        headers: { "Access-Control-Allow-Origin": "*", "Content-Type": "application/json" },
+        body: JSON.stringify({ error: err.message })
+      });
+    });
+  });
+};
